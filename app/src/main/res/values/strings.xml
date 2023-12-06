@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">NeverLate</string>
+    <string name="title_activity_wake_up">WakeUpActivity</string>
 </resources>

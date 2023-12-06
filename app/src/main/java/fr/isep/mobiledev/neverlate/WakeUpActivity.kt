@@ -1,6 +1,5 @@
 package fr.isep.mobiledev.neverlate
 
-import android.app.AlarmManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,31 +12,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import fr.isep.mobiledev.neverlate.ui.theme.NeverLateTheme
 
+class WakeUpActivity : ComponentActivity() {
 
-class MainActivity : ComponentActivity() {
+    private lateinit var binding: ActivityLockscreenBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        showWhenLockedAndTurnScreenOn()
         super.onCreate(savedInstanceState)
-        setContent {
-            NeverLateTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
-            }
-        }
 
-        val mgr : AlarmManager = this.getSystemService(ALARM_SERVICE) as AlarmManager
-        if(mgr.canScheduleExactAlarms()){
-            mgr.setAlarmClock(AlarmManager.AlarmClockInfo(1000, null), null);
+        binding = ActivityLockscreenBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+    }
+
+    private fun showWhenLockedAndTurnScreenOn() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        } else {
+            window.addFlags(
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                        or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+            )
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun Greeting2(name: String, modifier: Modifier = Modifier) {
     Text(
         text = "Hello $name!",
         modifier = modifier
@@ -46,8 +47,8 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun GreetingPreview2() {
     NeverLateTheme {
-        Greeting("Android")
+        Greeting2("Android")
     }
 }
