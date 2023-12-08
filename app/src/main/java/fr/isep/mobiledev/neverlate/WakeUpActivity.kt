@@ -1,8 +1,10 @@
 package fr.isep.mobiledev.neverlate
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -14,41 +16,20 @@ import fr.isep.mobiledev.neverlate.ui.theme.NeverLateTheme
 
 class WakeUpActivity : ComponentActivity() {
 
-    private lateinit var binding: ActivityLockscreenBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        showWhenLockedAndTurnScreenOn()
+        setShowWhenLocked(true)
+        setTurnScreenOn(true)
         super.onCreate(savedInstanceState)
 
-        binding = ActivityLockscreenBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-    }
-
-    private fun showWhenLockedAndTurnScreenOn() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true)
-            setTurnScreenOn(true)
-        } else {
-            window.addFlags(
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                        or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
-            )
+        setContent {
+            NeverLateTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    Text("Hello World!")
+                }
+            }
         }
-    }
-}
-
-@Composable
-fun Greeting2(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview2() {
-    NeverLateTheme {
-        Greeting2("Android")
     }
 }
