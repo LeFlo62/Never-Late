@@ -22,7 +22,6 @@
             android:exported="false"
             android:label="@string/title_activity_wake_up"
             android:theme="@style/Theme.NeverLate"
-            android:launchMode="singleTop"
             android:showOnLockScreen="true"
             />
         <activity

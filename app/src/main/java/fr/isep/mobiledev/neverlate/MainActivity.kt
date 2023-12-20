@@ -42,7 +42,10 @@ class MainActivity : ComponentActivity() {
 
     private fun schedule(){
         val mgr : AlarmManager = this.getSystemService(ALARM_SERVICE) as AlarmManager
-        val pending : PendingIntent = PendingIntent.getActivity(this, 0, Intent(applicationContext, WakeUpActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+        val intent = Intent(applicationContext, WakeUpActivity::class.java)
+        //TODO use broadcast
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+        val pending : PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
         println("canScheduleExactAlarms: " + mgr.canScheduleExactAlarms())
         if(mgr.canScheduleExactAlarms()){
             mgr.setAlarmClock(AlarmManager.AlarmClockInfo(System.currentTimeMillis()+ 30000, pending), pending)
