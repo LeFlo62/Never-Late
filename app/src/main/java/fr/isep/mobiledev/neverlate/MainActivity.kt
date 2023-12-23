@@ -6,8 +6,11 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,23 +28,31 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.room.Room
+import fr.isep.mobiledev.neverlate.activities.EditAlarmActivity
 import fr.isep.mobiledev.neverlate.entities.Alarm
 import fr.isep.mobiledev.neverlate.entities.AlarmItem
+import fr.isep.mobiledev.neverlate.model.AlarmViewModel
+import fr.isep.mobiledev.neverlate.model.AlarmViewModelFactory
 import fr.isep.mobiledev.neverlate.ui.theme.NeverLateTheme
 
 
 class MainActivity : ComponentActivity() {
 
-    lateinit var db : AppDatabase
+    private val alarmViewModel by viewModels<AlarmViewModel> {
+        AlarmViewModelFactory((this.applicationContext as NeverLateApplication).repository)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,16 +65,21 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Box{
-                        AlarmList()
-                        Button(
+                        AlarmList(alarmViewModel)
+                        IconButton(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .padding(16.dp)
-                                .size(48.dp),
-                            shape = CircleShape,
-                            onClick = { /*TODO*/ }
-                        ) {
-                            //TODO icon trop petit on le voit pas, essaie d'augmenter la taille du btn tu verra. Mais faut augmenter l'icone !
+                                .background(
+                                    MaterialTheme.colorScheme.secondary,
+                                    shape = CircleShape
+                                )
+                                .size(64.dp),
+                            onClick = {
+                                alarmViewModel.insert(Alarm(0, "Test", 12, 30, true))
+//                                val intent = Intent(this@MainActivity, EditAlarmActivity::class.java)
+//                                startActivity(intent)
+                            }) {
                             Icon(Icons.Filled.Add, contentDescription = "Add", tint = MaterialTheme.colorScheme.onSecondary)
                         }
                     }
@@ -73,36 +89,23 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun AlarmList(){
-        var alarms by remember { mutableStateOf(listOf<Alarm>()) }
-        initDatabase()
-        val alarmDao = db.alarmDao()
-
-        alarmDao.getAllAlarms().observe(this) { alarmList ->
-            val alarmListMutable = alarmList.toMutableList()
-            if(alarms.isEmpty()){
-                for(i in 0..10){
-                    alarmListMutable.add(Alarm(i, "Alarm $i", i, i, false))
-                }
-            }
-            alarms = alarmListMutable
-        }
+    private fun AlarmList(viewModel : AlarmViewModel){
+        val alarms : List<Alarm> by viewModel.allAlarms.observeAsState(listOf())
 
         LazyColumn(modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp)) {
             items(alarms) { alarm ->
-                AlarmItem(alarm, modifier = Modifier.padding(8.dp))
+                AlarmItem(alarm, modifier = Modifier
+                    .padding(8.dp)
+                    .clickable {
+                        val intent = Intent(this@MainActivity, EditAlarmActivity::class.java)
+                        intent.putExtra("alarmId", alarm.id)
+                        startActivity(intent)
+                    })
             }
         }
-    }
-
-    private fun initDatabase(){
-        db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "neverlate"
-        ).build()
     }
 
     private fun schedule(){
@@ -120,21 +123,5 @@ class MainActivity : ComponentActivity() {
                 applicationContext.startActivity(intent)
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    NeverLateTheme {
-        Greeting("Android")
     }
 }
