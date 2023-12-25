@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import fr.isep.mobiledev.neverlate.NeverLateApplication
 import fr.isep.mobiledev.neverlate.R
 import fr.isep.mobiledev.neverlate.activities.ui.theme.NeverLateTheme
+import fr.isep.mobiledev.neverlate.dto.AlarmDTO
 import fr.isep.mobiledev.neverlate.entities.Alarm
 import fr.isep.mobiledev.neverlate.model.AlarmViewModel
 import fr.isep.mobiledev.neverlate.model.AlarmViewModelFactory
@@ -62,9 +63,16 @@ class EditAlarmActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    if(intent.hasExtra("alarmId")) {
-                        val alarm : Alarm by alarmViewModel.getAlarmById(intent.getIntExtra("alarmId", 0)).observeAsState(Alarm())
-                        EditAlarm(alarm)
+                    if(intent.hasExtra(AlarmDTO.ALARM_EXTRA)) {
+                        val alarmDto : AlarmDTO?
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                            alarmDto = intent.getParcelableExtra(AlarmDTO.ALARM_EXTRA, AlarmDTO::class.java)
+                        } else {
+                            alarmDto = intent.getParcelableExtra<AlarmDTO>(AlarmDTO.ALARM_EXTRA)
+                        }
+                        if(alarmDto != null) {
+                            EditAlarm(Alarm(alarmDto.id, if(alarmDto.name != null) alarmDto.name!! else "", alarmDto.hour, alarmDto.minute, alarmDto.toggled))
+                        }
                     } else {
                         EditAlarm()
                     }
@@ -127,6 +135,7 @@ class EditAlarmActivity : ComponentActivity() {
             TimePicker(state = timeState, modifier = Modifier.fillMaxWidth())
             TextField(value = name,
                 modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
                 placeholder = { Text(text = stringResource(R.string.alarm_name)) },
                 onValueChange = {
                     name = it

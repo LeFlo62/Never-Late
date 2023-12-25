@@ -43,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.isep.mobiledev.neverlate.activities.EditAlarmActivity
+import fr.isep.mobiledev.neverlate.dto.AlarmDTO
 import fr.isep.mobiledev.neverlate.entities.Alarm
 import fr.isep.mobiledev.neverlate.model.AlarmViewModel
 import fr.isep.mobiledev.neverlate.model.AlarmViewModelFactory
@@ -100,7 +101,7 @@ class MainActivity : ComponentActivity() {
                     .padding(8.dp)
                     .clickable {
                         val intent = Intent(this@MainActivity, EditAlarmActivity::class.java)
-                        intent.putExtra("alarmId", alarm.id)
+                        intent.putExtra(AlarmDTO.ALARM_EXTRA, AlarmDTO(alarm))
                         startActivity(intent)
                     })
             }

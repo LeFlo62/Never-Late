@@ -1,6 +1,5 @@
 package fr.isep.mobiledev.neverlate.entities
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
