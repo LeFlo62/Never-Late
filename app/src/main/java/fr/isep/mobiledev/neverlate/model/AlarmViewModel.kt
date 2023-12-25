@@ -33,6 +33,14 @@ class AlarmViewModel(private val repository : AlarmRepository) : ViewModel() {
         repository.update(alarm)
     }
 
+    fun upsert(alarm: Alarm) = coroutineScope.launch {
+        repository.upsert(alarm)
+    }
+
+    fun deleteAlarms(alarms : List<Alarm>) = coroutineScope.launch {
+        repository.deleteAlarms(alarms)
+    }
+
 }
 
 class AlarmViewModelFactory(private val repository: AlarmRepository) : ViewModelProvider.Factory {

@@ -27,4 +27,12 @@ class AlarmRepository(private val alarmDao: AlarmDao) {
     fun update(alarm: Alarm) {
         alarmDao.updateAlarm(alarm)
     }
+
+    fun upsert(alarm: Alarm) {
+        alarmDao.upsertAlarm(alarm)
+    }
+
+    fun deleteAlarms(alarms : List<Alarm>) {
+        alarmDao.deleteAlarms(alarms)
+    }
 }

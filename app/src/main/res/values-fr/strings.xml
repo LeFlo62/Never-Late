@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NeverLate</string>
+    <string name="title_activity_wake_up">WakeUpActivity</string>
+    <string name="title_activity_edit_alarm">EditAlarmActivity</string>
+    <string name="edit_alarm">Modifier alarme</string>
+    <string name="create_alarm">Créer alarme</string>
+    <string name="alarm_name">Nom de l\'alarme</string>
+    <string name="delete">Supprimer</string>
+    <string name="close">Fermer</string>
+    <string name="save">Sauvegarder</string>
+</resources>

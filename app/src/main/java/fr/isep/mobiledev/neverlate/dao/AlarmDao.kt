@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import fr.isep.mobiledev.neverlate.entities.Alarm
 import kotlinx.coroutines.flow.Flow
 
@@ -20,10 +21,16 @@ interface AlarmDao {
     @Insert
     fun insertAlarm(alarm: Alarm)
 
+    @Upsert
+    fun upsertAlarm(alarm: Alarm)
+
     @Delete
     fun deleteAlarm(alarm: Alarm)
 
     @Update
     fun updateAlarm(alarm: Alarm)
+
+    @Delete
+    fun deleteAlarms(alarms: List<Alarm>)
 
 }
