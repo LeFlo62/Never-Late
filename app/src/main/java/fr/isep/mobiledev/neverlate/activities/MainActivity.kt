@@ -1,4 +1,4 @@
-package fr.isep.mobiledev.neverlate
+package fr.isep.mobiledev.neverlate.activities
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -12,14 +12,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -41,13 +39,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import fr.isep.mobiledev.neverlate.activities.EditAlarmActivity
+import fr.isep.mobiledev.neverlate.NeverLateApplication
+import fr.isep.mobiledev.neverlate.R
+import fr.isep.mobiledev.neverlate.activities.ui.theme.NeverLateTheme
 import fr.isep.mobiledev.neverlate.dto.AlarmDTO
 import fr.isep.mobiledev.neverlate.entities.Alarm
 import fr.isep.mobiledev.neverlate.model.AlarmViewModel
 import fr.isep.mobiledev.neverlate.model.AlarmViewModelFactory
-import fr.isep.mobiledev.neverlate.ui.theme.NeverLateTheme
 
 
 class MainActivity : ComponentActivity() {
@@ -79,8 +77,9 @@ class MainActivity : ComponentActivity() {
                             onClick = {
                                 val intent = Intent(this@MainActivity, EditAlarmActivity::class.java)
                                 startActivity(intent)
-                            }) {
-                            Icon(Icons.Filled.Add, contentDescription = "Add", tint = MaterialTheme.colorScheme.onSecondary)
+                            }
+                        ) {
+                            Icon(Icons.Filled.Add, contentDescription = getString(R.string.add), tint = MaterialTheme.colorScheme.onSecondary)
                         }
                     }
                 }
@@ -111,10 +110,14 @@ class MainActivity : ComponentActivity() {
     @Preview(showBackground = true)
     @Composable
     fun AlarmItem(modifier: Modifier = Modifier, alarm: Alarm = Alarm(0, "Test", 9, 10, true)) {
-        Row(modifier = Modifier.then(modifier)
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(16.dp))
-                .padding(16.dp)
+        Row(modifier = Modifier
+            .then(modifier)
+            .fillMaxWidth()
+            .background(
+                MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(16.dp)
         ){
             Column(modifier = Modifier.weight(1f)){
                 if(alarm.name.isNotEmpty()) {
@@ -129,8 +132,9 @@ class MainActivity : ComponentActivity() {
             var toggled by remember { mutableStateOf(alarm.toggled) }
 
             Switch(checked = toggled,
-                modifier = Modifier.padding(start = 16.dp)
-                                    .align(Alignment.CenterVertically),
+                modifier = Modifier
+                    .padding(start = 16.dp)
+                    .align(Alignment.CenterVertically),
                 onCheckedChange = {
                     toggled = it
                     alarm.toggled = it

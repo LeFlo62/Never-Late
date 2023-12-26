@@ -142,17 +142,21 @@ class EditAlarmActivity : ComponentActivity() {
                     println(name)
                 }
             )
-            OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
-                onClick = {
-                    alarmViewModel.delete(alarm)
-                    finish()
+
+
+            if(alarm.id != 0){
+                OutlinedButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+                    onClick = {
+                        alarmViewModel.delete(alarm)
+                        finish()
+                    }
+                ) {
+                    Text(text = stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
-            ) {
-                Text(text = stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
             }
         }
     }
