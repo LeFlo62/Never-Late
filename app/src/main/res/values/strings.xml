@@ -20,14 +20,6 @@
     <string name="every">Every</string>
     <string name="weeks">weeks</string>
     <string name="starting_on">Starting on</string>
-    <string-array name="day_of_week_short">
-        <item>S</item>
-        <item>M</item>
-        <item>T</item>
-        <item>W</item>
-        <item>T</item>
-        <item>F</item>
-        <item>S</item>
-    </string-array>
+    <string name="month_of_year">Month of Year</string>
 
 </resources>

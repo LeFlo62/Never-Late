@@ -7,22 +7,28 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -58,6 +64,7 @@ import fr.isep.mobiledev.neverlate.entities.Alarm
 import fr.isep.mobiledev.neverlate.model.AlarmViewModel
 import fr.isep.mobiledev.neverlate.model.AlarmViewModelFactory
 import fr.isep.mobiledev.neverlate.rules.DayOfWeek
+import fr.isep.mobiledev.neverlate.rules.MonthOfYear
 import fr.isep.mobiledev.neverlate.rules.PreciseDate
 import fr.isep.mobiledev.neverlate.rules.Rule
 import fr.isep.mobiledev.neverlate.rules.WeekOfYear
@@ -182,6 +189,8 @@ class EditAlarmActivity : ComponentActivity() {
                     DayOfWeek(alarm, rules)
 
                     WeekOfYear(alarm, rules)
+
+                    MonthOfYear(alarm, rules)
                 }
             }
 
@@ -267,7 +276,9 @@ class EditAlarmActivity : ComponentActivity() {
             Row{
                 Text(text = stringResource(R.string.every), modifier = Modifier.align(Alignment.CenterVertically))
                 TextField(value = period.toString(),
-                    modifier = Modifier.width(96.dp).padding(start = 16.dp, end = 16.dp),
+                    modifier = Modifier
+                        .width(96.dp)
+                        .padding(start = 16.dp, end = 16.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     onValueChange = {
@@ -283,7 +294,9 @@ class EditAlarmActivity : ComponentActivity() {
             Row{
                 Text(text = stringResource(R.string.starting_on), modifier = Modifier.align(Alignment.CenterVertically))
                 TextField(value = offset.toString(),
-                    modifier = Modifier.width(96.dp).padding(start = 16.dp, end = 16.dp),
+                    modifier = Modifier
+                        .width(96.dp)
+                        .padding(start = 16.dp, end = 16.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     onValueChange = {
@@ -296,6 +309,35 @@ class EditAlarmActivity : ComponentActivity() {
                 Text(text = stringResource(R.string.weeks), modifier = Modifier.align(Alignment.CenterVertically))
             }
 
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+    @Composable
+    fun MonthOfYear(alarm : Alarm, rules : MutableState<List<Rule>>){
+        var monthOfYear by remember(alarm) { mutableStateOf(rules.value.any{it.javaClass == MonthOfYear::class.java}) }
+        Row{
+            Checkbox(checked = monthOfYear, onCheckedChange = {monthOfYear = it})
+            Text(text = stringResource(R.string.month_of_year), modifier = Modifier.align(Alignment.CenterVertically))
+        }
+
+        if(monthOfYear){
+            var months by remember(alarm) { mutableStateOf(if(rules.value.any{it.javaClass == MonthOfYear::class.java}) (rules.value.find { it.javaClass == MonthOfYear::class.java } as MonthOfYear).months else listOf(false, false, false, false, false, false, false, false, false, false, false, false)) }
+
+            FlowRow(modifier = Modifier.fillMaxWidth()){
+                for(month in 0..11){
+                    FilterChip(
+                        selected = months[month],
+                        onClick = {
+                            months = months.toMutableList().apply {
+                                set(month, !get(month))
+                            }
+                            rules.value = rules.value.filter { it.javaClass != MonthOfYear::class.java  } + MonthOfYear(months)
+                        }, label = {
+                            Text(text = stringArrayResource(id = R.array.month_of_year)[month])
+                        })
+                }
+            }
         }
     }
 

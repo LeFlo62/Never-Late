@@ -20,13 +20,5 @@
     <string name="every">Toutes les</string>
     <string name="weeks">semaines</string>
     <string name="starting_on">À partir de</string>
-    <string-array name="day_of_week_short">
-        <item>D</item>
-        <item>L</item>
-        <item>M</item>
-        <item>M</item>
-        <item>J</item>
-        <item>V</item>
-        <item>S</item>
-    </string-array>
+    <string name="month_of_year">Mois de l\'année</string>
 </resources>
