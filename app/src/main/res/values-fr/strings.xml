@@ -14,8 +14,12 @@
     <string name="single_date">Date précise</string>
     <string name="repeated">Répété</string>
     <string name="day_of_week">Jour de la semaine</string>
-    <string name="full_date_format">HH:mm dd/MM/yyyy</string>
+    <string name="date_format">dd/MM/yyyy</string>
     <string name="time_format">HH:mm</string>
+    <string name="week_of_year">Week of Year</string>
+    <string name="every">Toutes les</string>
+    <string name="weeks">semaines</string>
+    <string name="starting_on">À partir de</string>
     <string-array name="day_of_week_short">
         <item>D</item>
         <item>L</item>

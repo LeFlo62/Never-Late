@@ -14,8 +14,12 @@
     <string name="single_date">Single date</string>
     <string name="repeated">Repeated</string>
     <string name="day_of_week">Day of Week</string>
-    <string name="full_date_format">M/d/yy hh:mm a</string>
+    <string name="date_format">M/d/yy</string>
     <string name="time_format">hh:mm a</string>
+    <string name="week_of_year">Week of Year</string>
+    <string name="every">Every</string>
+    <string name="weeks">weeks</string>
+    <string name="starting_on">Starting on</string>
     <string-array name="day_of_week_short">
         <item>S</item>
         <item>M</item>

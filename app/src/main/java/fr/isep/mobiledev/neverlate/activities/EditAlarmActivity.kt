@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -33,6 +35,7 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerState
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +46,7 @@ import androidx.compose.ui.res.booleanResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,6 +60,7 @@ import fr.isep.mobiledev.neverlate.model.AlarmViewModelFactory
 import fr.isep.mobiledev.neverlate.rules.DayOfWeek
 import fr.isep.mobiledev.neverlate.rules.PreciseDate
 import fr.isep.mobiledev.neverlate.rules.Rule
+import fr.isep.mobiledev.neverlate.rules.WeekOfYear
 import fr.isep.mobiledev.neverlate.utils.Section
 import java.util.Calendar
 
@@ -111,9 +116,11 @@ class EditAlarmActivity : ComponentActivity() {
             val is24Hour = booleanResource(id = R.bool.is24Hour)
             val timeState by remember(alarm) { mutableStateOf(TimePickerState(alarm.hour, alarm.minute, is24Hour)) }
             var name by remember(alarm) { mutableStateOf(alarm.name) }
-            var rules by remember(alarm) { mutableStateOf(alarm.rules) }
 
-            val datePickerState by remember { mutableStateOf(DatePickerState(System.currentTimeMillis(), null, currentYear..(currentYear+100), DisplayMode.Picker)) }
+            val rules = remember(alarm) { mutableStateOf(alarm.rules) }
+
+            val singleDate = remember { mutableStateOf(alarm.id == 0 || rules.value.any { it.javaClass == PreciseDate::class.java }) }
+            val datePickerState by remember { mutableStateOf(DatePickerState(if(rules.value.any { it.javaClass == PreciseDate::class.java }) (rules.value.find{ it.javaClass == PreciseDate::class.java } as PreciseDate).getTimeMillis() else System.currentTimeMillis(), null, currentYear..(currentYear+100), DisplayMode.Picker)) }
 
             Row(modifier = Modifier
                 .fillMaxWidth()
@@ -137,16 +144,17 @@ class EditAlarmActivity : ComponentActivity() {
                 IconButton(
                     modifier = Modifier
                         .align(Alignment.CenterVertically),
+                    enabled = rules.value.isNotEmpty() || singleDate.value,
                     onClick = {
                         alarm.hour = timeState.hour
                         alarm.minute = timeState.minute
                         alarm.name = name
 
-                        if(rules.any{ it.javaClass == PreciseDate::class.java }){
-                            rules = listOf(PreciseDate(Calendar.getInstance().apply { timeInMillis = datePickerState.selectedDateMillis!! }))
+                        if(singleDate.value){
+                            rules.value = listOf(PreciseDate(Calendar.getInstance().apply { timeInMillis = datePickerState.selectedDateMillis!! }))
                         }
 
-                        alarm.rules = rules
+                        alarm.rules = rules.value
 
                         alarmViewModel.upsert(alarm)
                         finish()
@@ -167,51 +175,13 @@ class EditAlarmActivity : ComponentActivity() {
                 }
             )
 
-
-            //TODO save to database
             Section(name = stringResource(R.string.repeat), opened = true) {
-                var singleDate by remember { mutableStateOf(rules.any { it.javaClass == PreciseDate::class.java }) }
-                Row{
-                    Checkbox(checked = singleDate, onCheckedChange = {
-                        singleDate = it
-                    })
-                    Text(text = stringResource(R.string.single_date), modifier = Modifier.align(Alignment.CenterVertically))
-                }
-                if(singleDate){
-                    DatePicker(state = datePickerState, modifier = Modifier.fillMaxWidth())
-                }
-                Section(name = stringResource(id = R.string.repeated), opened = true, disabled = singleDate) {
-                    var dayOfWeek by remember(alarm) { mutableStateOf(rules.any{it.javaClass == DayOfWeek::class.java}) }
-                    Row{
-                        Checkbox(checked = dayOfWeek, onCheckedChange = {dayOfWeek = it})
-                        Text(text = stringResource(R.string.day_of_week), modifier = Modifier.align(Alignment.CenterVertically))
-                    }
-                    if(dayOfWeek){
-                        var days by remember(alarm) { mutableStateOf(if(rules.any{it.javaClass == DayOfWeek::class.java}) (rules.find { it.javaClass == DayOfWeek::class.java } as DayOfWeek).days else listOf(false, false, false, false, false, false, false)) }
+                SingleDate(singleDate, datePickerState, rules)
 
-                        Row{
-                            for(day in 0..6){
-                               IconButton(
-                                  onClick = {
-                                    days = days.toMutableList().apply {
-                                         set(day, !get(day))
-                                    }
-                                    rules = listOf(DayOfWeek(days))
-                                  },
-                                  modifier = Modifier
-                                      .weight(1f)
-                                      .minimumInteractiveComponentSize()
-                                      .padding(4.dp),
-                                  colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = if(days[day]) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
-                                    contentColor = if(days[day]) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer
-                                  )
-                               ) {
-                                   Text(text = stringArrayResource(id = R.array.day_of_week_short)[day])
-                               }
-                            }
-                        }
-                    }
+                Section(name = stringResource(id = R.string.repeated), opened = !singleDate.value, disabled = singleDate.value) {
+                    DayOfWeek(alarm, rules)
+
+                    WeekOfYear(alarm, rules)
                 }
             }
 
@@ -230,4 +200,103 @@ class EditAlarmActivity : ComponentActivity() {
             }
         }
     }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun SingleDate(singleDate : MutableState<Boolean>, datePickerState : DatePickerState, rules : MutableState<List<Rule>>){
+        Row{
+            Checkbox(checked = singleDate.value, onCheckedChange = {
+                singleDate.value = it
+                if(!it){
+                    rules.value = listOf()
+                }
+            })
+            Text(text = stringResource(R.string.single_date), modifier = Modifier.align(Alignment.CenterVertically))
+        }
+        if(singleDate.value){
+            DatePicker(state = datePickerState, modifier = Modifier.fillMaxWidth())
+        }
+    }
+
+    @Composable
+    fun DayOfWeek(alarm : Alarm, rules : MutableState<List<Rule>>){
+        var dayOfWeek by remember(alarm) { mutableStateOf(rules.value.any{it.javaClass == DayOfWeek::class.java}) }
+        Row{
+            Checkbox(checked = dayOfWeek, onCheckedChange = {dayOfWeek = it})
+            Text(text = stringResource(R.string.day_of_week), modifier = Modifier.align(Alignment.CenterVertically))
+        }
+        if(dayOfWeek){
+            var days by remember(alarm) { mutableStateOf(if(rules.value.any{it.javaClass == DayOfWeek::class.java}) (rules.value.find { it.javaClass == DayOfWeek::class.java } as DayOfWeek).days else listOf(false, false, false, false, false, false, false)) }
+
+            Row{
+                for(day in 0..6){
+                    IconButton(
+                        onClick = {
+                            days = days.toMutableList().apply {
+                                set(day, !get(day))
+                            }
+                            rules.value = rules.value.filter { it.javaClass != DayOfWeek::class.java  } + DayOfWeek(days)
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .minimumInteractiveComponentSize()
+                            .padding(4.dp),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = if(days[day]) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = if(days[day]) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    ) {
+                        Text(text = stringArrayResource(id = R.array.day_of_week_short)[day])
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun WeekOfYear(alarm : Alarm, rules : MutableState<List<Rule>>){
+        var weekOfYear by remember(alarm) { mutableStateOf(rules.value.any{it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java}) }
+        Row{
+            Checkbox(checked = weekOfYear, onCheckedChange = {weekOfYear = it})
+            Text(text = stringResource(R.string.week_of_year), modifier = Modifier.align(Alignment.CenterVertically))
+        }
+        if(weekOfYear){
+            var period by remember(alarm) { mutableStateOf(if(rules.value.any{it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java}) (rules.value.find { it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java } as fr.isep.mobiledev.neverlate.rules.WeekOfYear).period else 1) }
+            var offset by remember(alarm) { mutableStateOf(if(rules.value.any{it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java}) (rules.value.find { it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java } as fr.isep.mobiledev.neverlate.rules.WeekOfYear).offset else 0) }
+
+            Row{
+                Text(text = stringResource(R.string.every), modifier = Modifier.align(Alignment.CenterVertically))
+                TextField(value = period.toString(),
+                    modifier = Modifier.width(96.dp).padding(start = 16.dp, end = 16.dp),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    onValueChange = {
+                        period = it.filter { c -> c.isDigit() }.toIntOrNull() ?: 1
+                        if(period <= 1) period = 2
+                        if(period > 52) period = 52
+                        rules.value = rules.value.filter { it.javaClass != WeekOfYear::class.java  } + WeekOfYear(period, offset)
+                    }
+                )
+                Text(text = stringResource(R.string.weeks), modifier = Modifier.align(Alignment.CenterVertically))
+            }
+
+            Row{
+                Text(text = stringResource(R.string.starting_on), modifier = Modifier.align(Alignment.CenterVertically))
+                TextField(value = offset.toString(),
+                    modifier = Modifier.width(96.dp).padding(start = 16.dp, end = 16.dp),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    onValueChange = {
+                        offset = it.filter { c -> c.isDigit() }.toIntOrNull() ?: 0
+                        if(offset < 0) offset = 0
+                        if(offset >= period) offset = period - 1
+                        rules.value = rules.value.filter { it.javaClass != WeekOfYear::class.java  } + WeekOfYear(period, offset)
+                    }
+                )
+                Text(text = stringResource(R.string.weeks), modifier = Modifier.align(Alignment.CenterVertically))
+            }
+
+        }
+    }
+
 }

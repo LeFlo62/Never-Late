@@ -39,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import fr.isep.mobiledev.neverlate.NeverLateApplication
 import fr.isep.mobiledev.neverlate.R
@@ -126,13 +125,13 @@ class MainActivity : ComponentActivity() {
                     Text(text = alarm.name, style = MaterialTheme.typography.labelSmall, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
 
-                val formattedTriggerTime = DateFormat.format(stringResource(R.string.time_format), (24*60*alarm.hour+alarm.minute)*60*1000L).toString()
+                val triggerTime : Calendar = Calendar.getInstance()
+                triggerTime.timeInMillis = alarm.getNextExecution()
+                val formattedTriggerTime = DateFormat.format(stringResource(R.string.time_format), triggerTime).toString()
                 Text(text = formattedTriggerTime, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
 
-                val calendar : Calendar = Calendar.getInstance()
-                calendar.timeInMillis = alarm.getNextExecution()
-                val formattedDate = android.text.format.DateFormat.format(stringResource(R.string.full_date_format), calendar).toString()
-                Text(text = formattedDate, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                val formattedTriggerDate = DateFormat.format(stringResource(R.string.date_format), triggerTime).toString()
+                Text(text = formattedTriggerDate, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
 
             }
 
