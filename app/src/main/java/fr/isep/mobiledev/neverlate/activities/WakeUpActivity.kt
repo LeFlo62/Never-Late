@@ -23,7 +23,7 @@ class WakeUpActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Text("Hello World!")
+                    Text("Wake up !")
                 }
             }
         }
