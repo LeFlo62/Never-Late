@@ -2,25 +2,29 @@ package fr.isep.mobiledev.neverlate.dto
 
 import android.os.Parcel
 import android.os.Parcelable
+import fr.isep.mobiledev.neverlate.converter.RuleConverter
 import fr.isep.mobiledev.neverlate.entities.Alarm
+import fr.isep.mobiledev.neverlate.rules.Rule
 
 class AlarmDTO(
     var id: Int = 0,
     var name: String? = "",
     var hour: Int = 0,
     var minute: Int = 0,
-    var toggled: Boolean = false
+    var toggled: Boolean = false,
+    var rules: List<Rule> = listOf()
 ) : Parcelable {
 
 
-    constructor(alarm : Alarm) : this(alarm.id, alarm.name, alarm.hour, alarm.minute, alarm.toggled)
+    constructor(alarm : Alarm) : this(alarm.id, alarm.name, alarm.hour, alarm.minute, alarm.toggled, alarm.rules)
 
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readString(),
         parcel.readInt(),
         parcel.readInt(),
-        parcel.readByte() != 0.toByte()
+        parcel.readByte() != 0.toByte(),
+        RuleConverter.gson.fromJson(parcel.readString(), Array<Rule>::class.java).toList()
     ) {
     }
 
@@ -30,6 +34,7 @@ class AlarmDTO(
         parcel.writeInt(hour)
         parcel.writeInt(minute)
         parcel.writeByte(if (toggled) 1 else 0)
+        parcel.writeString(RuleConverter.gson.toJson(rules))
     }
 
     override fun describeContents(): Int {

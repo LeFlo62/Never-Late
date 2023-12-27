@@ -4,6 +4,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Bundle
+import android.text.format.DateFormat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -46,6 +48,7 @@ import fr.isep.mobiledev.neverlate.dto.AlarmDTO
 import fr.isep.mobiledev.neverlate.entities.Alarm
 import fr.isep.mobiledev.neverlate.model.AlarmViewModel
 import fr.isep.mobiledev.neverlate.model.AlarmViewModelFactory
+import java.util.Calendar
 
 
 class MainActivity : ComponentActivity() {
@@ -64,7 +67,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Box{
-                        AlarmList(alarmViewModel)
+                        AlarmList()
                         IconButton(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
@@ -88,8 +91,8 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun AlarmList(viewModel : AlarmViewModel){
-        val alarms : List<Alarm> by viewModel.allAlarms.observeAsState(listOf())
+    private fun AlarmList(){
+        val alarms : List<Alarm> by alarmViewModel.allAlarms.observeAsState(listOf())
 
         LazyColumn(modifier = Modifier
             .fillMaxSize()
@@ -107,7 +110,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Preview(showBackground = true)
     @Composable
     fun AlarmItem(modifier: Modifier = Modifier, alarm: Alarm = Alarm(0, "Test", 9, 10, true)) {
         Row(modifier = Modifier
@@ -124,8 +126,13 @@ class MainActivity : ComponentActivity() {
                     Text(text = alarm.name, style = MaterialTheme.typography.labelSmall, modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
 
-                Text(text = "${alarm.hour}:${alarm.minute}", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                Text(text = "Tomorrow", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                val formattedTriggerTime = DateFormat.format(stringResource(R.string.time_format), (24*60*alarm.hour+alarm.minute)*60*1000L).toString()
+                Text(text = formattedTriggerTime, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+
+                val calendar : Calendar = Calendar.getInstance()
+                calendar.timeInMillis = alarm.getNextExecution()
+                val formattedDate = android.text.format.DateFormat.format(stringResource(R.string.full_date_format), calendar).toString()
+                Text(text = formattedDate, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
 
             }
 
