@@ -40,7 +40,6 @@ class WeekOfYear(val period : Int, val offset : Int) : Rule {
     }
 }
 
-//TODO
 class MonthOfYear(val months : List<Boolean>) : Rule {
     private val className: String = this::class.java.name
     override fun getNextExecution(time: Long): Long {
