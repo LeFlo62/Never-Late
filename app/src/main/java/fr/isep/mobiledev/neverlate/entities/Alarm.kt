@@ -6,6 +6,7 @@ import androidx.room.TypeConverters
 import fr.isep.mobiledev.neverlate.converter.RuleConverter
 import fr.isep.mobiledev.neverlate.rules.Rule
 import java.time.ZonedDateTime
+import java.util.Calendar
 
 @Entity
 data class Alarm (
@@ -24,8 +25,8 @@ data class Alarm (
         //Add hour and minute
         val calendar = java.util.Calendar.getInstance()
         calendar.timeInMillis = time
-        calendar.set(java.util.Calendar.HOUR_OF_DAY, hour)
-        calendar.set(java.util.Calendar.MINUTE, minute)
+        calendar.set(Calendar.HOUR_OF_DAY, hour)
+        calendar.set(Calendar.MINUTE, minute)
         return calendar.timeInMillis
     }
 }

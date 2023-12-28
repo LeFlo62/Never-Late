@@ -39,15 +39,16 @@ class AlarmScheduler private constructor(context: Context) {
         alarmViewModel.allAlarms.observeOnce {
             println("Scheduling next alarm")
 
-            val alarm = it.filter { alarm -> alarm.toggled }.minByOrNull { alarm -> alarm.getNextExecution() } ?: return@observeOnce
+            val alarm = it.filter { alarm -> alarm.toggled && alarm.getNextExecution() > System.currentTimeMillis() }.minByOrNull { alarm -> alarm.getNextExecution() } ?: return@observeOnce
 
             println("Next alarm is '${alarm.name}' at ${DateFormat.format("HH:mm dd/MM/yy", alarm.getNextExecution())} (${alarm.getNextExecution()}) now is ${System.currentTimeMillis()} - ${ZonedDateTime.now().offset.totalSeconds * 1000}")
             val mgr : AlarmManager = context.getSystemService(ComponentActivity.ALARM_SERVICE) as AlarmManager
 
-            val receiverIntent = Intent(context, AlarmReceiver::class.java)
-            receiverIntent.putExtra("alarm", AlarmDTO(alarm))
+            val receiverIntent = Intent(context, AlarmReceiver::class.java).apply {
+                putExtra("alarmId", alarm.id)
+            }
 
-            val pendingIntent = PendingIntent.getBroadcast(context, 0, receiverIntent, PendingIntent.FLAG_IMMUTABLE)
+            val pendingIntent = PendingIntent.getBroadcast(context, 0, receiverIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
             val showIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
 

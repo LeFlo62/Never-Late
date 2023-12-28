@@ -8,19 +8,16 @@ import fr.isep.mobiledev.neverlate.dto.AlarmDTO
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
-        println("Alarm received")
+        println("AlarmReceiver")
+
         if (context == null || intent == null) return
+        val alarmId = intent.getIntExtra("alarmId", -1)
 
-        val alarmDto : AlarmDTO? = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra(AlarmDTO.ALARM_EXTRA, AlarmDTO::class.java)
-        } else {
-            intent.getParcelableExtra<AlarmDTO>(AlarmDTO.ALARM_EXTRA)
-        }
-
-        if (alarmDto == null) return
+        println("AlarmReceiver: $alarmId")
+        if (alarmId == -1) return
 
         val wakeUpActivityIntent = Intent(context, WakeUpActivity::class.java)
-        wakeUpActivityIntent.putExtra(AlarmDTO.ALARM_EXTRA, alarmDto)
+        wakeUpActivityIntent.putExtra("alarmId", alarmId)
         wakeUpActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(wakeUpActivityIntent)
 
