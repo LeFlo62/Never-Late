@@ -69,6 +69,9 @@ import fr.isep.mobiledev.neverlate.rules.PreciseDate
 import fr.isep.mobiledev.neverlate.rules.Rule
 import fr.isep.mobiledev.neverlate.rules.WeekOfYear
 import fr.isep.mobiledev.neverlate.utils.Section
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class EditAlarmActivity : ComponentActivity() {
@@ -163,7 +166,11 @@ class EditAlarmActivity : ComponentActivity() {
 
                         alarm.rules = rules.value
 
-                        alarmViewModel.upsert(alarm)
+                        alarmViewModel.upsert(alarm).invokeOnCompletion {
+                            CoroutineScope(Dispatchers.Main).launch {
+                                (applicationContext as NeverLateApplication).alarmScheduler.scheduleNextAlarm(applicationContext)
+                            }
+                        }
                         finish()
                     }
                 ) {
@@ -200,7 +207,11 @@ class EditAlarmActivity : ComponentActivity() {
                         .fillMaxWidth(),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
                     onClick = {
-                        alarmViewModel.delete(alarm)
+                        alarmViewModel.delete(alarm).invokeOnCompletion {
+                            CoroutineScope(Dispatchers.Main).launch {
+                                (applicationContext as NeverLateApplication).alarmScheduler.scheduleNextAlarm(applicationContext)
+                            }
+                        }
                         finish()
                     }
                 ) {

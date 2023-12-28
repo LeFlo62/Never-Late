@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import fr.isep.mobiledev.neverlate.converter.RuleConverter
 import fr.isep.mobiledev.neverlate.rules.Rule
+import java.time.ZonedDateTime
 
 @Entity
 data class Alarm (

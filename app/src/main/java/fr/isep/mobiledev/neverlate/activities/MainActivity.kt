@@ -47,6 +47,9 @@ import fr.isep.mobiledev.neverlate.dto.AlarmDTO
 import fr.isep.mobiledev.neverlate.entities.Alarm
 import fr.isep.mobiledev.neverlate.model.AlarmViewModel
 import fr.isep.mobiledev.neverlate.model.AlarmViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 
@@ -144,25 +147,13 @@ class MainActivity : ComponentActivity() {
                 onCheckedChange = {
                     toggled = it
                     alarm.toggled = it
-                    alarmViewModel.update(alarm)
+                    alarmViewModel.update(alarm).invokeOnCompletion {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            (applicationContext as NeverLateApplication).alarmScheduler.scheduleNextAlarm(applicationContext)
+                        }
+                    }
                 }
             )
-        }
-    }
-
-    private fun schedule(){
-        val mgr : AlarmManager = this.getSystemService(ALARM_SERVICE) as AlarmManager
-        val intent = Intent(applicationContext, WakeUpActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK
-        val pending : PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        println("canScheduleExactAlarms: " + mgr.canScheduleExactAlarms())
-        if(mgr.canScheduleExactAlarms()){
-            mgr.setAlarmClock(AlarmManager.AlarmClockInfo(System.currentTimeMillis()+ 30000, pending), pending)
-        } else {
-            Intent().also { intent ->
-                intent.action = android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
-                applicationContext.startActivity(intent)
-            }
         }
     }
 }
