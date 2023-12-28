@@ -9,7 +9,7 @@ import fr.isep.mobiledev.neverlate.converter.RuleConverter
 import fr.isep.mobiledev.neverlate.dao.AlarmDao
 import fr.isep.mobiledev.neverlate.entities.Alarm
 
-@Database(entities = [Alarm::class], version = 1)
+@Database(entities = [Alarm::class], version = 11)
 @TypeConverters(RuleConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 

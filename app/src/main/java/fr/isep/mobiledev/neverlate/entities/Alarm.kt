@@ -27,6 +27,6 @@ data class Alarm (
         calendar.timeInMillis = time
         calendar.set(Calendar.HOUR_OF_DAY, hour)
         calendar.set(Calendar.MINUTE, minute)
-        return calendar.timeInMillis
+        return calendar.timeInMillis/60000*60000
     }
 }

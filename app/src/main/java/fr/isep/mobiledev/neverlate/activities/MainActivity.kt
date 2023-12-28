@@ -1,12 +1,22 @@
 package fr.isep.mobiledev.neverlate.activities
 
+import android.Manifest
 import android.app.AlarmManager
+import android.app.AlertDialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.media.AudioAttributes
+import android.media.RingtoneManager
+import android.os.Build
 import android.os.Bundle
 import android.text.format.DateFormat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,6 +50,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import fr.isep.mobiledev.neverlate.AlarmReceiver
 import fr.isep.mobiledev.neverlate.NeverLateApplication
 import fr.isep.mobiledev.neverlate.R
 import fr.isep.mobiledev.neverlate.activities.ui.theme.NeverLateTheme
@@ -61,6 +73,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        askNotificationPermission()
+
+        val channel = NotificationChannel(AlarmReceiver.CHANNEL_ID, "NeverLate Alarm", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "NeverLate Alarm"
+            enableVibration(true)
+            setSound(null, null)
+        }
+        val notificationManager: NotificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
 
         setContent {
             NeverLateTheme {
@@ -154,6 +177,49 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             )
+        }
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Can post notifications.
+        } else {
+            // Inform user that that your app will not show notifications.
+        }
+    }
+
+    private fun askNotificationPermission() {
+        // This is only necessary for API level >= 33 (TIRAMISU)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                // Can post notifications.
+                println("Can post notifications")
+            } else if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                // Display an educational UI explaining to the user the features that will be enabled
+                //       by them granting the POST_NOTIFICATION permission. This UI should provide the user
+                //       "OK" and "No thanks" buttons. If the user selects "OK," directly request the permission.
+                //       If the user selects "No thanks," allow the user to continue without notifications.
+                println("Display an educational UI explaining to the user the features that will be enabled")
+                AlertDialog.Builder(this)
+                    .setTitle("Notification Permission Needed")
+                    .setMessage("This app needs the Notification permission, please accept to use alarm functionality")
+                    .setPositiveButton(
+                        "OK"
+                    ) { _, _ ->
+                        //Prompt the user once explanation has been shown
+                        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                    .create()
+                    .show()
+            } else {
+                // Directly ask for the permission
+                println("Directly ask for the permission")
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
         }
     }
 }

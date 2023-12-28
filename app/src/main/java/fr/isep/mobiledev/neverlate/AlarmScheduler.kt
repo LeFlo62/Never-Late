@@ -15,6 +15,7 @@ import fr.isep.mobiledev.neverlate.dto.AlarmDTO
 import fr.isep.mobiledev.neverlate.entities.Alarm
 import fr.isep.mobiledev.neverlate.model.AlarmViewModel
 import fr.isep.mobiledev.neverlate.model.AlarmViewModelFactory
+import fr.isep.mobiledev.neverlate.repository.AlarmRepository
 import java.time.ZonedDateTime
 
 class AlarmScheduler private constructor(context: Context) {
@@ -29,23 +30,27 @@ class AlarmScheduler private constructor(context: Context) {
         }
     }
 
-    private val alarmViewModel : AlarmViewModel
+    private val alarmRepository : AlarmRepository
 
     init {
-        this.alarmViewModel = AlarmViewModelFactory((context as NeverLateApplication).repository).create(AlarmViewModel::class.java)
+        this.alarmRepository = (context as NeverLateApplication).repository
     }
 
-    fun scheduleNextAlarm(context: Context) {
-        alarmViewModel.allAlarms.observeOnce {
+    suspend fun scheduleNextAlarm(context: Context) {
+        alarmRepository.allAlarms.collect {
             println("Scheduling next alarm")
+            println(it)
+            for (alarm in it) {
+                println("${DateFormat.format("HH:mm:ss dd/MM/yy", alarm.getNextExecution())} (${alarm.getNextExecution()})")
+            }
+            val alarm = it.filter { alarm -> alarm.toggled && alarm.getNextExecution() > System.currentTimeMillis() }.minByOrNull { alarm -> alarm.getNextExecution() } ?: return@collect
 
-            val alarm = it.filter { alarm -> alarm.toggled && alarm.getNextExecution() > System.currentTimeMillis() }.minByOrNull { alarm -> alarm.getNextExecution() } ?: return@observeOnce
-
-            println("Next alarm is '${alarm.name}' at ${DateFormat.format("HH:mm dd/MM/yy", alarm.getNextExecution())} (${alarm.getNextExecution()}) now is ${System.currentTimeMillis()} - ${ZonedDateTime.now().offset.totalSeconds * 1000}")
+            println("Next alarm is '${alarm.name}' at ${DateFormat.format("HH:mm:ss dd/MM/yy", alarm.getNextExecution())} (${alarm.getNextExecution()}) now is ${System.currentTimeMillis()} - ${ZonedDateTime.now().offset.totalSeconds * 1000}")
             val mgr : AlarmManager = context.getSystemService(ComponentActivity.ALARM_SERVICE) as AlarmManager
 
             val receiverIntent = Intent(context, AlarmReceiver::class.java).apply {
-                putExtra("alarmId", alarm.id)
+                action = AlarmReceiver.ACTION_ALARM
+                putExtra(AlarmDTO.ALARM_EXTRA, AlarmDTO(alarm))
             }
 
             val pendingIntent = PendingIntent.getBroadcast(context, 0, receiverIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
@@ -54,6 +59,7 @@ class AlarmScheduler private constructor(context: Context) {
 
             mgr.cancel(pendingIntent)
             mgr.setAlarmClock(AlarmManager.AlarmClockInfo(alarm.getNextExecution(), showIntent), pendingIntent)
+
         }
 
     }
