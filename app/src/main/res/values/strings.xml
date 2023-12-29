@@ -21,5 +21,14 @@
     <string name="weeks">weeks</string>
     <string name="starting_on">Starting on</string>
     <string name="month_of_year">Month of Year</string>
+    <string name="snooze">Snooze</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="answer">Answer</string>
+    <string name="math_dismiss">To dismiss, solve the following equation:</string>
+    <string name="puzzle">Puzzle</string>
+    <string name="none">None</string>
+    <string name="math">Math</string>
+    <string name="alarm_notification_empty">An alarm is ringing</string>
+    <string name="alarm_notification">Alarm %s is ringing</string>
 
 </resources>

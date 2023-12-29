@@ -161,7 +161,7 @@ class MainActivity : ComponentActivity() {
 
             }
 
-            var toggled by remember { mutableStateOf(alarm.toggled) }
+            var toggled by remember(alarm) { mutableStateOf(alarm.toggled) }
 
             Switch(checked = toggled,
                 modifier = Modifier

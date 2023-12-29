@@ -4,6 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import fr.isep.mobiledev.neverlate.converter.RuleConverter
+import fr.isep.mobiledev.neverlate.rules.Puzzle
+import fr.isep.mobiledev.neverlate.rules.PuzzleNone
 import fr.isep.mobiledev.neverlate.rules.Rule
 import java.time.ZonedDateTime
 import java.util.Calendar
@@ -15,7 +17,8 @@ data class Alarm (
     var hour: Int = 0,
     var minute: Int = 0,
     var toggled: Boolean = false,
-    var rules: List<Rule> = listOf()
+    var rules: List<Rule> = listOf(),
+    var puzzle: Puzzle = PuzzleNone()
 ) {
     fun getNextExecution() : Long {
         var time = System.currentTimeMillis()

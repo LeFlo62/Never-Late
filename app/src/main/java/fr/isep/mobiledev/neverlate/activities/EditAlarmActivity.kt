@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -66,6 +68,8 @@ import fr.isep.mobiledev.neverlate.model.AlarmViewModelFactory
 import fr.isep.mobiledev.neverlate.rules.DayOfWeek
 import fr.isep.mobiledev.neverlate.rules.MonthOfYear
 import fr.isep.mobiledev.neverlate.rules.PreciseDate
+import fr.isep.mobiledev.neverlate.rules.PuzzleMath
+import fr.isep.mobiledev.neverlate.rules.PuzzleNone
 import fr.isep.mobiledev.neverlate.rules.Rule
 import fr.isep.mobiledev.neverlate.rules.WeekOfYear
 import fr.isep.mobiledev.neverlate.utils.Section
@@ -82,6 +86,15 @@ class EditAlarmActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val alarm : AlarmDTO = if(intent.hasExtra(AlarmDTO.ALARM_EXTRA)){
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(AlarmDTO.ALARM_EXTRA, AlarmDTO::class.java)!!
+            } else {
+                intent.getParcelableExtra<AlarmDTO>(AlarmDTO.ALARM_EXTRA)!!
+            }
+        } else {
+            AlarmDTO(toggled = true)
+        }
         setContent {
             NeverLateTheme {
                 // A surface container using the 'background' color from the theme
@@ -89,18 +102,7 @@ class EditAlarmActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    if(intent.hasExtra(AlarmDTO.ALARM_EXTRA)) {
-                        val alarmDto : AlarmDTO? = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                            intent.getParcelableExtra(AlarmDTO.ALARM_EXTRA, AlarmDTO::class.java)
-                        } else {
-                            intent.getParcelableExtra<AlarmDTO>(AlarmDTO.ALARM_EXTRA)
-                        }
-                        if(alarmDto != null) {
-                            EditAlarm(Alarm(alarmDto.id, if(alarmDto.name != null) alarmDto.name!! else "", alarmDto.hour, alarmDto.minute, alarmDto.toggled, alarmDto.rules))
-                        }
-                    } else {
-                        EditAlarm()
-                    }
+                    EditAlarm(alarm)
                 }
             }
         }
@@ -109,7 +111,7 @@ class EditAlarmActivity : ComponentActivity() {
     @Preview(showBackground = true)
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun EditAlarm(alarm : Alarm? = Alarm(toggled = true)) {
+    private fun EditAlarm(alarm : AlarmDTO? = AlarmDTO(toggled = true)) {
         if(alarm == null) {
             // This case happen when the alarm is being deleted
             return
@@ -162,11 +164,12 @@ class EditAlarmActivity : ComponentActivity() {
 
                         if(singleDate.value){
                             rules.value = listOf(PreciseDate(Calendar.getInstance().apply { timeInMillis = datePickerState.selectedDateMillis!! }))
+                            alarm.toggled = true
                         }
 
                         alarm.rules = rules.value
 
-                        alarmViewModel.upsert(alarm).invokeOnCompletion {
+                        alarmViewModel.upsert(alarm.toAlarm()).invokeOnCompletion {
                             CoroutineScope(Dispatchers.Main).launch {
                                 (applicationContext as NeverLateApplication).alarmScheduler.scheduleNextAlarm(applicationContext)
                             }
@@ -201,13 +204,39 @@ class EditAlarmActivity : ComponentActivity() {
                 }
             }
 
+            Section(name = stringResource(R.string.puzzle)){
+                Column(modifier = Modifier.fillMaxWidth().selectableGroup()) {
+                    var puzzle by remember(alarm) { mutableStateOf(alarm.puzzle.javaClass.name) }
+                    Row{
+                        RadioButton(
+                            selected = puzzle == PuzzleNone::class.java.name,
+                            onClick = {
+                                alarm.puzzle = PuzzleNone()
+                                puzzle = PuzzleNone::class.java.name
+                            }
+                        )
+                        Text(text = stringResource(R.string.none), modifier = Modifier.align(Alignment.CenterVertically))
+                    }
+                    Row{
+                        RadioButton(
+                            selected = puzzle == PuzzleMath::class.java.name,
+                            onClick = {
+                                alarm.puzzle = PuzzleMath()
+                                puzzle = PuzzleMath::class.java.name
+                            }
+                        )
+                        Text(text = stringResource(R.string.math), modifier = Modifier.align(Alignment.CenterVertically))
+                    }
+                }
+            }
+
             if(alarm.id != 0){
                 OutlinedButton(
                     modifier = Modifier
                         .fillMaxWidth(),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
                     onClick = {
-                        alarmViewModel.delete(alarm).invokeOnCompletion {
+                        alarmViewModel.delete(alarm.toAlarm()).invokeOnCompletion {
                             CoroutineScope(Dispatchers.Main).launch {
                                 (applicationContext as NeverLateApplication).alarmScheduler.scheduleNextAlarm(applicationContext)
                             }
@@ -239,7 +268,7 @@ class EditAlarmActivity : ComponentActivity() {
     }
 
     @Composable
-    fun DayOfWeek(alarm : Alarm, rules : MutableState<List<Rule>>){
+    fun DayOfWeek(alarm : AlarmDTO, rules : MutableState<List<Rule>>){
         var dayOfWeek by remember(alarm) { mutableStateOf(rules.value.any{it.javaClass == DayOfWeek::class.java}) }
         Row{
             Checkbox(checked = dayOfWeek, onCheckedChange = {dayOfWeek = it})
@@ -274,7 +303,7 @@ class EditAlarmActivity : ComponentActivity() {
     }
 
     @Composable
-    fun WeekOfYear(alarm : Alarm, rules : MutableState<List<Rule>>){
+    fun WeekOfYear(alarm : AlarmDTO, rules : MutableState<List<Rule>>){
         var weekOfYear by remember(alarm) { mutableStateOf(rules.value.any{it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java}) }
         Row{
             Checkbox(checked = weekOfYear, onCheckedChange = {weekOfYear = it})
@@ -325,7 +354,7 @@ class EditAlarmActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
     @Composable
-    fun MonthOfYear(alarm : Alarm, rules : MutableState<List<Rule>>){
+    fun MonthOfYear(alarm : AlarmDTO, rules : MutableState<List<Rule>>){
         var monthOfYear by remember(alarm) { mutableStateOf(rules.value.any{it.javaClass == MonthOfYear::class.java}) }
         Row{
             Checkbox(checked = monthOfYear, onCheckedChange = {monthOfYear = it})

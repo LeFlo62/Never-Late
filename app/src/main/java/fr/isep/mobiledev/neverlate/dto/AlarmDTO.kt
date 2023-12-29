@@ -2,29 +2,34 @@ package fr.isep.mobiledev.neverlate.dto
 
 import android.os.Parcel
 import android.os.Parcelable
+import fr.isep.mobiledev.neverlate.converter.PuzzleConverter
 import fr.isep.mobiledev.neverlate.converter.RuleConverter
 import fr.isep.mobiledev.neverlate.entities.Alarm
+import fr.isep.mobiledev.neverlate.rules.Puzzle
+import fr.isep.mobiledev.neverlate.rules.PuzzleNone
 import fr.isep.mobiledev.neverlate.rules.Rule
 
 class AlarmDTO(
     var id: Int = 0,
-    var name: String? = "",
+    var name: String = "",
     var hour: Int = 0,
     var minute: Int = 0,
     var toggled: Boolean = false,
-    var rules: List<Rule> = listOf()
+    var rules: List<Rule> = listOf(),
+    var puzzle : Puzzle = PuzzleNone()
 ) : Parcelable {
 
 
-    constructor(alarm : Alarm) : this(alarm.id, alarm.name, alarm.hour, alarm.minute, alarm.toggled, alarm.rules)
+    constructor(alarm : Alarm) : this(alarm.id, alarm.name, alarm.hour, alarm.minute, alarm.toggled, alarm.rules, alarm.puzzle)
 
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
-        parcel.readString(),
+        parcel.readString() ?: "",
         parcel.readInt(),
         parcel.readInt(),
         parcel.readByte() != 0.toByte(),
-        RuleConverter.gson.fromJson(parcel.readString(), Array<Rule>::class.java).toList()
+        RuleConverter.gson.fromJson(parcel.readString(), Array<Rule>::class.java).toList(),
+        PuzzleConverter.gson.fromJson(parcel.readString(), Puzzle::class.java)
     ) {
     }
 
@@ -35,10 +40,15 @@ class AlarmDTO(
         parcel.writeInt(minute)
         parcel.writeByte(if (toggled) 1 else 0)
         parcel.writeString(RuleConverter.gson.toJson(rules))
+        parcel.writeString(PuzzleConverter.gson.toJson(puzzle))
     }
 
     override fun describeContents(): Int {
         return 0
+    }
+
+    fun toAlarm() : Alarm {
+        return Alarm(id, name, hour, minute, toggled, rules, puzzle)
     }
 
     companion object CREATOR : Parcelable.Creator<AlarmDTO> {

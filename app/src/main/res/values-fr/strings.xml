@@ -21,4 +21,13 @@
     <string name="weeks">semaines</string>
     <string name="starting_on">À partir de</string>
     <string name="month_of_year">Mois de l\'année</string>
+    <string name="snooze">Reporter</string>
+    <string name="dismiss">Arrêter</string>
+    <string name="answer">Réponse</string>
+    <string name="math_dismiss">Pour arrêter, résoudre l\'équation</string>
+    <string name="puzzle">Puzzle</string>
+    <string name="none">Aucun</string>
+    <string name="math">Math</string>
+    <string name="alarm_notification_empty">Une alarme sonne</string>
+    <string name="alarm_notification">Alarm %s is ringing</string>
 </resources>
