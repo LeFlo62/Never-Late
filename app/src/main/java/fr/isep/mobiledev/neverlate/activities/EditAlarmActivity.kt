@@ -108,10 +108,9 @@ class EditAlarmActivity : ComponentActivity() {
         }
     }
 
-    @Preview(showBackground = true)
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun EditAlarm(alarm : AlarmDTO? = AlarmDTO(toggled = true)) {
+    private fun EditAlarm(alarm : AlarmDTO?) {
         if(alarm == null) {
             // This case happen when the alarm is being deleted
             return

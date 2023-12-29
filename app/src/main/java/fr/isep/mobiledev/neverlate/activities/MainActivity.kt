@@ -136,7 +136,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun AlarmItem(modifier: Modifier = Modifier, alarm: Alarm = Alarm(0, "Test", 9, 10, true)) {
+    fun AlarmItem(modifier: Modifier = Modifier, alarm: Alarm) {
         Row(modifier = Modifier
             .then(modifier)
             .fillMaxWidth()

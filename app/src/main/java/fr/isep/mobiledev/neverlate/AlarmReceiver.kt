@@ -28,8 +28,6 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        println("AlarmReceiver")
-
         if (context == null || intent == null) return
         val alarmDto : AlarmDTO? = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra(AlarmDTO.ALARM_EXTRA, AlarmDTO::class.java)
@@ -38,7 +36,6 @@ class AlarmReceiver : BroadcastReceiver() {
         }
 
         if(alarmDto == null) return
-        println("AlarmReceiver: ${alarmDto.name}")
 
         when(intent.action){
             ACTION_ALARM -> playAlarm(context, alarmDto)
@@ -48,7 +45,6 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun dismissAlarm(context: Context, alarmDto: AlarmDTO) {
-        println("AlarmReceiver: dismissAlarm")
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
 
         (context.applicationContext as NeverLateApplication).alarmPlayer.stop()
@@ -59,7 +55,6 @@ class AlarmReceiver : BroadcastReceiver() {
         if(alarmDto.rules.any{it.javaClass == PreciseDate::class.java}){
             CoroutineScope(Dispatchers.IO).launch {
                 alarmDto.toggled = false
-                println("AlarmReceiver: update alarm")
                 (context.applicationContext as NeverLateApplication).repository.update(alarmDto.toAlarm())
             }
         }
@@ -69,7 +64,6 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun snoozeAlarm(context: Context, alarmDto: AlarmDTO) {
-        println("AlarmReceiver: snoozeAlarm")
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
 
         (context.applicationContext as NeverLateApplication).alarmPlayer.stop()
@@ -92,7 +86,6 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun playAlarm(context : Context, alarmDto : AlarmDTO) {
-        println("AlarmReceiver: playAlarm")
         val wakeUpActivityIntent = Intent(context, WakeUpActivity::class.java)
         wakeUpActivityIntent.putExtra(AlarmDTO.ALARM_EXTRA, alarmDto)
         wakeUpActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
