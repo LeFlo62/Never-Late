@@ -30,4 +30,7 @@
     <string name="math">Math</string>
     <string name="alarm_notification_empty">Une alarme sonne</string>
     <string name="alarm_notification">Alarm %s is ringing</string>
+    <string name="send_sms">Envoyer un SMS au réveil</string>
+    <string name="phone_number">Numéro de téléphone</string>
+    <string name="sms_message">Message à envoyer</string>
 </resources>

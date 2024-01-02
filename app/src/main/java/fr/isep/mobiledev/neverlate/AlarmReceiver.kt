@@ -8,6 +8,7 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.provider.AlarmClock
+import android.telephony.SmsManager
 import androidx.compose.ui.res.stringResource
 import androidx.core.app.NotificationCompat
 import fr.isep.mobiledev.neverlate.activities.MainActivity
@@ -49,8 +50,12 @@ class AlarmReceiver : BroadcastReceiver() {
 
         (context.applicationContext as NeverLateApplication).alarmPlayer.stop()
 
-        notificationManager.cancel(1)
+        if(alarmDto.smsPhoneNumber.isNotEmpty()) {
+            val smsManager = context.getSystemService(SmsManager::class.java)
+            smsManager.sendTextMessage(alarmDto.smsPhoneNumber, null, alarmDto.smsMessage, null, null)
+        }
 
+        notificationManager.cancel(1)
 
         if(alarmDto.rules.any{it.javaClass == PreciseDate::class.java}){
             CoroutineScope(Dispatchers.IO).launch {

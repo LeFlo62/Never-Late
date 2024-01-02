@@ -75,6 +75,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         askNotificationPermission()
+        askSMSPermission()
 
         val channel = NotificationChannel(AlarmReceiver.CHANNEL_ID, "NeverLate Alarm", NotificationManager.IMPORTANCE_HIGH).apply {
             description = "NeverLate Alarm"
@@ -220,6 +221,36 @@ class MainActivity : ComponentActivity() {
                 println("Directly ask for the permission")
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
+        }
+    }
+
+    private fun askSMSPermission(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            // Can send SMS.
+            println("Can send SMS")
+        } else if (shouldShowRequestPermissionRationale(Manifest.permission.SEND_SMS)) {
+            // Display an educational UI explaining to the user the features that will be enabled
+            //       by them granting the SEND_SMS permission. This UI should provide the user
+            //       "OK" and "No thanks" buttons. If the user selects "OK," directly request the permission.
+            //       If the user selects "No thanks," allow the user to continue without SMS.
+            println("Display an educational UI explaining to the user the features that will be enabled")
+            AlertDialog.Builder(this)
+                .setTitle("SMS Permission Needed")
+                .setMessage("This app needs the SMS permission, please accept to use alarm functionality")
+                .setPositiveButton(
+                    "OK"
+                ) { _, _ ->
+                    //Prompt the user once explanation has been shown
+                    requestPermissionLauncher.launch(Manifest.permission.SEND_SMS)
+                }
+                .create()
+                .show()
+        } else {
+            // Directly ask for the permission
+            println("Directly ask for the permission")
+            requestPermissionLauncher.launch(Manifest.permission.SEND_SMS)
         }
     }
 }

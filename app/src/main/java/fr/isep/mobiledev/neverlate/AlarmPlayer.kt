@@ -23,7 +23,9 @@ class AlarmPlayer() {
 
     fun play(context: Context) {
         if(mediaPlayer == null){
-            mediaPlayer = MediaPlayer.create(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM))
+            val audioService = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+            val audioSessionIdd = audioService.generateAudioSessionId()
+            mediaPlayer = MediaPlayer.create(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM), null, AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build(), audioSessionIdd)
         }
         mediaPlayer?.isLooping = true
         mediaPlayer?.start()

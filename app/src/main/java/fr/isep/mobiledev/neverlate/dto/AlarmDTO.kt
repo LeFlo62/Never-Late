@@ -16,11 +16,12 @@ class AlarmDTO(
     var minute: Int = 0,
     var toggled: Boolean = false,
     var rules: List<Rule> = listOf(),
-    var puzzle : Puzzle = PuzzleNone()
+    var puzzle : Puzzle = PuzzleNone(),
+    var smsPhoneNumber: String = "",
+    var smsMessage: String = ""
 ) : Parcelable {
 
-
-    constructor(alarm : Alarm) : this(alarm.id, alarm.name, alarm.hour, alarm.minute, alarm.toggled, alarm.rules, alarm.puzzle)
+    constructor(alarm : Alarm) : this(alarm.id, alarm.name, alarm.hour, alarm.minute, alarm.toggled, alarm.rules, alarm.puzzle, alarm.smsPhoneNumber, alarm.smsMessage)
 
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
@@ -29,7 +30,9 @@ class AlarmDTO(
         parcel.readInt(),
         parcel.readByte() != 0.toByte(),
         RuleConverter.gson.fromJson(parcel.readString(), Array<Rule>::class.java).toList(),
-        PuzzleConverter.gson.fromJson(parcel.readString(), Puzzle::class.java)
+        PuzzleConverter.gson.fromJson(parcel.readString(), Puzzle::class.java),
+        parcel.readString() ?: "",
+        parcel.readString() ?: ""
     ) {
     }
 
@@ -41,6 +44,8 @@ class AlarmDTO(
         parcel.writeByte(if (toggled) 1 else 0)
         parcel.writeString(RuleConverter.gson.toJson(rules))
         parcel.writeString(PuzzleConverter.gson.toJson(puzzle))
+        parcel.writeString(smsPhoneNumber)
+        parcel.writeString(smsMessage)
     }
 
     override fun describeContents(): Int {
@@ -48,7 +53,7 @@ class AlarmDTO(
     }
 
     fun toAlarm() : Alarm {
-        return Alarm(id, name, hour, minute, toggled, rules, puzzle)
+        return Alarm(id, name, hour, minute, toggled, rules, puzzle, smsPhoneNumber, smsMessage)
     }
 
     companion object CREATOR : Parcelable.Creator<AlarmDTO> {

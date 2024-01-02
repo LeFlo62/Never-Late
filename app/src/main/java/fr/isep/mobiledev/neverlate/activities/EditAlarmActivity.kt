@@ -45,6 +45,7 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -204,7 +205,9 @@ class EditAlarmActivity : ComponentActivity() {
             }
 
             Section(name = stringResource(R.string.puzzle)){
-                Column(modifier = Modifier.fillMaxWidth().selectableGroup()) {
+                Column(modifier = Modifier
+                    .fillMaxWidth()
+                    .selectableGroup()) {
                     var puzzle by remember(alarm) { mutableStateOf(alarm.puzzle.javaClass.name) }
                     Row{
                         RadioButton(
@@ -229,6 +232,8 @@ class EditAlarmActivity : ComponentActivity() {
                 }
             }
 
+            SmsEdit(alarm)
+
             if(alarm.id != 0){
                 OutlinedButton(
                     modifier = Modifier
@@ -246,6 +251,45 @@ class EditAlarmActivity : ComponentActivity() {
                     Text(text = stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             }
+        }
+    }
+
+    @Composable
+    fun SmsEdit(alarm: AlarmDTO) {
+        var sendSms by remember(alarm) { mutableStateOf(alarm.smsPhoneNumber.isNotEmpty()) }
+        Row{
+            Checkbox(checked = sendSms, onCheckedChange = {
+                sendSms = it
+                if(!it){
+                    alarm.smsPhoneNumber = ""
+                    alarm.smsMessage = ""
+                }
+            })
+            Text(text = stringResource(R.string.send_sms), modifier = Modifier.align(Alignment.CenterVertically))
+        }
+        if(sendSms){
+            var smsPhoneNumber = remember(alarm) { mutableStateOf(alarm.smsPhoneNumber) }
+            var smsMessage = remember(alarm) { mutableStateOf(alarm.smsMessage) }
+
+            TextField(value = smsPhoneNumber.value,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                placeholder = { Text(text = stringResource(R.string.phone_number)) },
+                onValueChange = {
+                    smsPhoneNumber.value = it
+                    alarm.smsPhoneNumber = it
+                }
+            )
+
+            TextField(value = smsMessage.value,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(text = stringResource(R.string.sms_message)) },
+                onValueChange = {
+                    smsMessage.value = it
+                    alarm.smsMessage = it
+                }
+            )
         }
     }
 
@@ -270,7 +314,12 @@ class EditAlarmActivity : ComponentActivity() {
     fun DayOfWeek(alarm : AlarmDTO, rules : MutableState<List<Rule>>){
         var dayOfWeek by remember(alarm) { mutableStateOf(rules.value.any{it.javaClass == DayOfWeek::class.java}) }
         Row{
-            Checkbox(checked = dayOfWeek, onCheckedChange = {dayOfWeek = it})
+            Checkbox(checked = dayOfWeek, onCheckedChange = {
+                dayOfWeek = it
+                if(!it){
+                    rules.value = rules.value.filter { it.javaClass != DayOfWeek::class.java  }
+                }
+            })
             Text(text = stringResource(R.string.day_of_week), modifier = Modifier.align(Alignment.CenterVertically))
         }
         if(dayOfWeek){
@@ -305,12 +354,17 @@ class EditAlarmActivity : ComponentActivity() {
     fun WeekOfYear(alarm : AlarmDTO, rules : MutableState<List<Rule>>){
         var weekOfYear by remember(alarm) { mutableStateOf(rules.value.any{it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java}) }
         Row{
-            Checkbox(checked = weekOfYear, onCheckedChange = {weekOfYear = it})
+            Checkbox(checked = weekOfYear, onCheckedChange = {
+                weekOfYear = it
+                if(!it){
+                    rules.value = rules.value.filter { it.javaClass != fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java  }
+                }
+            })
             Text(text = stringResource(R.string.week_of_year), modifier = Modifier.align(Alignment.CenterVertically))
         }
         if(weekOfYear){
-            var period by remember(alarm) { mutableStateOf(if(rules.value.any{it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java}) (rules.value.find { it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java } as fr.isep.mobiledev.neverlate.rules.WeekOfYear).period else 1) }
-            var offset by remember(alarm) { mutableStateOf(if(rules.value.any{it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java}) (rules.value.find { it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java } as fr.isep.mobiledev.neverlate.rules.WeekOfYear).offset else 0) }
+            var period by remember(alarm) { mutableIntStateOf(if(rules.value.any{it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java}) (rules.value.find { it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java } as fr.isep.mobiledev.neverlate.rules.WeekOfYear).period else 1) }
+            var offset by remember(alarm) { mutableIntStateOf(if(rules.value.any{it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java}) (rules.value.find { it.javaClass == fr.isep.mobiledev.neverlate.rules.WeekOfYear::class.java } as fr.isep.mobiledev.neverlate.rules.WeekOfYear).offset else 0) }
 
             Row{
                 Text(text = stringResource(R.string.every), modifier = Modifier.align(Alignment.CenterVertically))
@@ -341,6 +395,7 @@ class EditAlarmActivity : ComponentActivity() {
                     onValueChange = {
                         offset = it.filter { c -> c.isDigit() }.toIntOrNull() ?: 0
                         if(offset < 0) offset = 0
+                        println("$offset $period")
                         if(offset >= period) offset = period - 1
                         rules.value = rules.value.filter { it.javaClass != WeekOfYear::class.java  } + WeekOfYear(period, offset)
                     }
@@ -356,7 +411,12 @@ class EditAlarmActivity : ComponentActivity() {
     fun MonthOfYear(alarm : AlarmDTO, rules : MutableState<List<Rule>>){
         var monthOfYear by remember(alarm) { mutableStateOf(rules.value.any{it.javaClass == MonthOfYear::class.java}) }
         Row{
-            Checkbox(checked = monthOfYear, onCheckedChange = {monthOfYear = it})
+            Checkbox(checked = monthOfYear, onCheckedChange = {
+                monthOfYear = it
+                if(!it){
+                    rules.value = rules.value.filter { it.javaClass != MonthOfYear::class.java  }
+                }
+            })
             Text(text = stringResource(R.string.month_of_year), modifier = Modifier.align(Alignment.CenterVertically))
         }
 

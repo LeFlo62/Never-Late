@@ -2,6 +2,7 @@ package fr.isep.mobiledev.neverlate.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.telephony.SmsManager
 import android.text.format.DateFormat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent

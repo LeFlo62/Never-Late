@@ -7,17 +7,21 @@ class DayOfWeek(val days: List<Boolean>) : Rule {
     override fun getNextExecution(time: Long): Long {
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = time
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
         var day = calendar.get(Calendar.DAY_OF_WEEK)
         var i = 0
         while (!days[day - 1]) {
             day = (day % 7) + 1
             i++
         }
-        calendar.add(Calendar.DAY_OF_MONTH, i)
+        calendar.add(Calendar.DAY_OF_WEEK, i)
         return calendar.timeInMillis
     }
     override fun getClassName(): String {
         return className
+    }
+    override fun getOrder(): Int {
+        return 1
     }
 }
 
@@ -38,6 +42,9 @@ class WeekOfYear(val period : Int, val offset : Int) : Rule {
     override fun getClassName(): String {
         return className
     }
+    override fun getOrder(): Int {
+        return 2
+    }
 }
 
 class MonthOfYear(val months : List<Boolean>) : Rule {
@@ -56,6 +63,9 @@ class MonthOfYear(val months : List<Boolean>) : Rule {
     }
     override fun getClassName(): String {
         return className
+    }
+    override fun getOrder(): Int {
+        return 0
     }
 }
 
@@ -85,5 +95,8 @@ class PreciseDate(val day: Int, val month: Int, val year: Int) : Rule {
         calendar.set(Calendar.MONTH, month)
         calendar.set(Calendar.YEAR, year)
         return calendar.timeInMillis
+    }
+    override fun getOrder(): Int {
+        return -1
     }
 }

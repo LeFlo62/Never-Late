@@ -6,4 +6,6 @@ interface Rule : Convertable {
 
     fun getNextExecution(time : Long) : Long
 
+    fun getOrder() : Int
+
 }
